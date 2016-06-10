@@ -5,4 +5,5 @@
     <color name="colorAccent">#FFFFFF</color>
 
     <color name="colorBlackTransparent">#33020202</color>
+    <color name="colorError">@android:color/holo_red_dark</color>
 </resources>

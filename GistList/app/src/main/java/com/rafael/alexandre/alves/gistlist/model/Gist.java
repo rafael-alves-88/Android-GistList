@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 public class Gist {
 
-    public static final String GISTS_URL = "gists/";
+    public static final String GIST_ID = "GistID";
 
     @SerializedName("url")
     @Expose

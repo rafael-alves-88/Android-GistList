@@ -1,5 +1,6 @@
 package com.rafael.alexandre.alves.gistlist.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -19,6 +20,8 @@ import com.rafael.alexandre.alves.gistlist.R;
 import com.rafael.alexandre.alves.gistlist.adapter.GistAdapter;
 import com.rafael.alexandre.alves.gistlist.controller.GistController;
 import com.rafael.alexandre.alves.gistlist.model.Gist;
+import com.rafael.alexandre.alves.gistlist.model.Owner;
+import com.rafael.alexandre.alves.gistlist.ui.detail.GistDetailActivity;
 
 import org.json.JSONException;
 
@@ -35,8 +38,10 @@ import retrofit.Retrofit;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private GistController gistController = new GistController();
+    private GistController mGistController = new GistController();
     private List<Gist> mGistList;
+    private int mCurrentPage;
+    private GistAdapter mGistAdapter;
 
     @Bind(R.id.toolbar) Toolbar toolbar;
     @Bind(R.id.drawer_layout) DrawerLayout drawer;
@@ -63,15 +68,16 @@ public class MainActivity extends AppCompatActivity
         }
 
         try {
-            getGists(0);
+            mCurrentPage = 0;
+            getGists();
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void getGists(final int page) throws IOException, JSONException {
+    private void getGists() throws IOException, JSONException {
         rlLoading.setVisibility(View.VISIBLE);
-        Call<List<Gist>> call = gistController.getGistsCall(page);
+        Call<List<Gist>> call = mGistController.getGistsCall(mCurrentPage);
 
         call.enqueue(new Callback<List<Gist>>() {
             @Override
@@ -79,16 +85,30 @@ public class MainActivity extends AppCompatActivity
                 try {
                     mGistList = response.body();
 
-                    GistAdapter adapter = new GistAdapter(MainActivity.this, mGistList, new GistAdapter.OnGistClickListener() {
-                        @Override
-                        public void onGistClick(Gist item) {
-                            Toast.makeText(MainActivity.this, item.url, Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    if (mCurrentPage == 0) {
+                        mGistAdapter = new GistAdapter(MainActivity.this, mGistList, new GistAdapter.OnGistClickListener() {
+                            @Override
+                            public void onGistClick(Gist item) {
+                                Intent intent = new Intent(MainActivity.this, GistDetailActivity.class);
+                                String ownerLogin;
+                                if (item.owner != null) {
+                                    ownerLogin = item.owner.login;
+                                } else {
+                                    ownerLogin = "N/A";
+                                }
+                                intent.putExtra(Owner.OWNER_LOGIN, ownerLogin);
 
-                    LinearLayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this);
-                    rvGist.setLayoutManager(mLayoutManager);
-                    rvGist.setAdapter(adapter);
+                                intent.putExtra(Gist.GIST_ID, mGistController.getGistIDByURL(item.url));
+                                startActivity(intent);
+                            }
+                        });
+
+                        LinearLayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this);
+                        rvGist.setLayoutManager(mLayoutManager);
+                        rvGist.setAdapter(mGistAdapter);
+                    } else {
+                        mGistAdapter.notifyDataSetChanged();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

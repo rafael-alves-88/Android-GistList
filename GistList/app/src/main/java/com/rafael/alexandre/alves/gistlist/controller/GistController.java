@@ -1,6 +1,7 @@
 package com.rafael.alexandre.alves.gistlist.controller;
 
 import android.annotation.SuppressLint;
+import android.support.v7.widget.LinearLayoutManager;
 
 import com.rafael.alexandre.alves.gistlist.api.BaseAPI;
 import com.rafael.alexandre.alves.gistlist.api.RestAPI;
@@ -19,16 +20,30 @@ public class GistController extends BaseAPI {
 
     @SuppressLint("DefaultLocale")
     public Call<List<Gist>> getGistsCall(int page) throws IOException, JSONException {
-        String url = String.format("%s%spublic?page=%d", super.getBaseAPI(), Gist.GISTS_URL, page);
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(url)
+                .baseUrl(super.getBaseAPI())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         RestAPI service = retrofit.create(RestAPI.class);
 
-        Call<List<Gist>> call = service.getGistList();
+        return service.getGistList(page);
+    }
 
-        return call;
+    public Call<Gist> getGistByIDCall(String gistID) throws IOException, JSONException {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(super.getBaseAPI())
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        RestAPI service = retrofit.create(RestAPI.class);
+
+        return service.getGistByID(gistID);
+    }
+
+    public String getGistIDByURL(String url) {
+        String[] gistArray = url.split("/gists/");
+
+        return gistArray[gistArray.length - 1];
     }
 }

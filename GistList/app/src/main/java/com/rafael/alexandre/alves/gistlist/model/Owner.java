@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class Owner {
 
-    public static final String USER_API = "users/";
+    public static final String OWNER_LOGIN = "OwnerLogin";
 
     @SerializedName("login")
     @Expose
@@ -58,4 +58,7 @@ public class Owner {
     @SerializedName("site_admin")
     @Expose
     public Boolean siteAdmin;
+    @SerializedName("name")
+    @Expose
+    public String name;
 }

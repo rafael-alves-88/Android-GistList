@@ -20,4 +20,7 @@ public class Files {
     @SerializedName("size")
     @Expose
     public Integer size;
+    @SerializedName("content")
+    @Expose
+    public String content;
 }
