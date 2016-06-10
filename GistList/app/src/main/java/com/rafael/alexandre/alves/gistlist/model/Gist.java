@@ -3,6 +3,8 @@ package com.rafael.alexandre.alves.gistlist.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.HashMap;
+
 public class Gist {
 
     public static final String GISTS_URL = "gists/";
@@ -30,7 +32,7 @@ public class Gist {
     public String htmlUrl;
     @SerializedName("files")
     @Expose
-    public Files files;
+    public HashMap<String, Files> files;
     @SerializedName("public")
     @Expose
     public Boolean _public;
