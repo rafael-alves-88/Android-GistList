@@ -6,17 +6,22 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.rafael.alexandre.alves.gistlist.R;
+import com.rafael.alexandre.alves.gistlist.adapter.GistAdapter;
 import com.rafael.alexandre.alves.gistlist.controller.GistController;
 import com.rafael.alexandre.alves.gistlist.model.Gist;
 
 import org.json.JSONException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -36,6 +41,8 @@ public class MainActivity extends AppCompatActivity
     @Bind(R.id.toolbar) Toolbar toolbar;
     @Bind(R.id.drawer_layout) DrawerLayout drawer;
     @Bind(R.id.nav_view) NavigationView navigationView;
+    @Bind(R.id.rvGist) RecyclerView rvGist;
+    @Bind(R.id.rlLoading) RelativeLayout rlLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +70,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void getGists(final int page) throws IOException, JSONException {
+        rlLoading.setVisibility(View.VISIBLE);
         Call<List<Gist>> call = gistController.getGistsCall(page);
 
         call.enqueue(new Callback<List<Gist>>() {
@@ -70,14 +78,28 @@ public class MainActivity extends AppCompatActivity
             public void onResponse(Response<List<Gist>> response, Retrofit retrofit) {
                 try {
                     mGistList = response.body();
+
+                    GistAdapter adapter = new GistAdapter(MainActivity.this, mGistList, new GistAdapter.OnGistClickListener() {
+                        @Override
+                        public void onGistClick(Gist item) {
+                            Toast.makeText(MainActivity.this, item.url, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    LinearLayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this);
+                    rvGist.setLayoutManager(mLayoutManager);
+                    rvGist.setAdapter(adapter);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                rlLoading.setVisibility(View.GONE);
             }
 
             @Override
             public void onFailure(Throwable t) {
-
+                rlLoading.setVisibility(View.GONE);
+                Toast.makeText(MainActivity.this, "Erro", Toast.LENGTH_SHORT).show();
             }
         });
     }
