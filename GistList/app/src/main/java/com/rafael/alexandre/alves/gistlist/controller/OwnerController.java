@@ -1,8 +1,10 @@
 package com.rafael.alexandre.alves.gistlist.controller;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.support.annotation.RequiresPermission;
 
 import com.rafael.alexandre.alves.gistlist.api.BaseAPI;
 import com.rafael.alexandre.alves.gistlist.api.RestAPI;
@@ -33,11 +35,13 @@ public class OwnerController extends BaseAPI {
     }
 
     @SuppressLint("DefaultLocale")
+    @RequiresPermission(anyOf = { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION})
     public Owner getOwnerOffline(Context context, String login) throws IOException, ClassNotFoundException {
         return (Owner) new Serializer(context).Read(String.format("%s-%s", login.replace("/", ""), Owner.OWNER_GUID_OFFLINE));
     }
 
     @SuppressLint("DefaultLocale")
+    @RequiresPermission(anyOf = { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION})
     public void saveOwnerOffline(final Context context, final Owner owner, final String login) {
         new AsyncTask<Void, Void, Void>() {
             @Override

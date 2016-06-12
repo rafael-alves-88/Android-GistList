@@ -114,7 +114,9 @@ public class MainActivity extends AppCompatActivity
                 mAppMode = AppMode.ONLINE;
             } else {
                 mAppMode = AppMode.OFFLINE;
-                Toast.makeText(this, R.string.offline_mode, Toast.LENGTH_LONG).show();
+                if (mCurrentPage == 0) {
+                    Toast.makeText(this, R.string.offline_mode, Toast.LENGTH_LONG).show();
+                }
             }
             loadGists();
         } else {

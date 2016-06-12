@@ -1,9 +1,11 @@
 package com.rafael.alexandre.alves.gistlist.controller;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.RequiresPermission;
 import android.support.v4.app.FragmentManager;
 
 import com.rafael.alexandre.alves.gistlist.model.Files;
@@ -39,11 +41,13 @@ public class GistDetailController {
     }
 
     @SuppressLint("DefaultLocale")
+    @RequiresPermission(anyOf = { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION})
     public Gist getFullGistOffline(Context context, String gistId) throws IOException, ClassNotFoundException {
         return (Gist) new Serializer(context).Read(String.format("%s-%s", gistId, Gist.GIST_FULL_GIST_GUID_OFFLINE));
     }
 
     @SuppressLint("DefaultLocale")
+    @RequiresPermission(anyOf = { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION})
     public void saveFullGistOffline(final Context context, final Gist gist, final String gistId) {
         new AsyncTask<Void, Void, Void>() {
             @Override

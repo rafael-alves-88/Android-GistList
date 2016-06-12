@@ -1,9 +1,11 @@
 package com.rafael.alexandre.alves.gistlist.controller;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.annotation.RequiresPermission;
 
 import com.rafael.alexandre.alves.gistlist.api.BaseAPI;
 import com.rafael.alexandre.alves.gistlist.api.RestAPI;
@@ -52,11 +54,13 @@ public class GistController extends BaseAPI {
     }
 
     @SuppressLint("DefaultLocale")
+    @RequiresPermission(anyOf = { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION})
     public List<Gist> getGistOffline(Context context, int page) throws IOException, ClassNotFoundException {
         return (List<Gist>) new Serializer(context).Read(String.format("%d-%s", page, Gist.GIST_GUID_OFFLINE));
     }
 
     @SuppressLint("DefaultLocale")
+    @RequiresPermission(anyOf = { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION})
     public void saveGistOffline(final Context context, final List<Gist> gistList, final int page) {
         new AsyncTask<Void, Void, Void>() {
             @Override
