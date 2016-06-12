@@ -18,7 +18,6 @@ import com.rafael.alexandre.alves.gistlist.controller.OwnerController;
 import com.rafael.alexandre.alves.gistlist.model.Files;
 import com.rafael.alexandre.alves.gistlist.model.Gist;
 import com.rafael.alexandre.alves.gistlist.model.Owner;
-import com.rafael.alexandre.alves.gistlist.ui.detail.dialogFragments.history.HistoryFragment;
 import com.rafael.alexandre.alves.gistlist.utils.Utils;
 import com.squareup.picasso.Picasso;
 
@@ -100,7 +99,7 @@ public class GistDetailActivity extends AppCompatActivity {
             @Override
             public void onFailure(Throwable t) {
                 rlLoading.setVisibility(View.GONE);
-                Toast.makeText(GistDetailActivity.this, "Erro", Toast.LENGTH_SHORT).show();
+                Toast.makeText(GistDetailActivity.this, R.string.error_owner_data, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -131,7 +130,7 @@ public class GistDetailActivity extends AppCompatActivity {
             @Override
             public void onFailure(Throwable t) {
                 rlLoading.setVisibility(View.GONE);
-                Toast.makeText(GistDetailActivity.this, "Erro", Toast.LENGTH_SHORT).show();
+                Toast.makeText(GistDetailActivity.this, R.string.error_gist_data, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -154,7 +153,7 @@ public class GistDetailActivity extends AppCompatActivity {
         if (mFullGist.files != null && mFullGist.files.size() > 0) {
             mGistDetailController.openContentDialog(mFullGist, getSupportFragmentManager());
         } else {
-            Toast.makeText(this, "Vazio", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.error_empty_gist, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -163,7 +162,7 @@ public class GistDetailActivity extends AppCompatActivity {
         if (mFullGist.history != null && mFullGist.history.size() > 0) {
             mGistDetailController.openHistoryDialog(mFullGist, getSupportFragmentManager());
         } else {
-            Toast.makeText(this, "Vazio", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.error_empty_history, Toast.LENGTH_SHORT).show();
         }
     }
 

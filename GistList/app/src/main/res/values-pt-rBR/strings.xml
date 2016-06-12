@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GistList</string>
+
+    <string name="navigation_drawer_open">Abrir navigation drawer</string>
+    <string name="navigation_drawer_close">Fechar navigation drawer</string>
+    <string name="title_activity_gits_detail">GistDetailActivity</string>
+
+    <string name="error_empty_gist">Gist Vazio</string>
+    <string name="error_empty_history">Histórico Vazio</string>
+    <string name="error_gist_data">Erro ao obter dados do Gist</string>
+    <string name="error_gist_information">Erro ao manipular dados do Gist</string>
+    <string name="error_owner_data">Erro ao obter dados do Owner</string>
+    <string name="gist_detail_content">Conteúdo</string>
+    <string name="gist_detail_created_at">Criado em: </string>
+    <string name="gist_detail_description">Descrição: </string>
+    <string name="gist_detail_file_language">Linguagem: </string>
+    <string name="gist_detail_file_name">Nome: </string>
+    <string name="gist_detail_file_type">Tipo: </string>
+    <string name="gist_detail_gist_title">Gist</string>
+    <string name="gist_detail_history">Histórico</string>
+    <string name="gist_detail_history_additions">Adições: </string>
+    <string name="gist_detail_history_committed_at">Commit em: </string>
+    <string name="gist_detail_history_deletions">Removidos: </string>
+    <string name="gist_detail_history_total_changes">Total de Alterações: </string>
+    <string name="gist_detail_history_version">Versão: </string>
+    <string name="gist_detail_login">Login: </string>
+    <string name="gist_detail_name">Nome: </string>
+    <string name="gist_detail_user_title">Usuário</string>
+    <string name="gist_detail_updated_at">Atualizado em: </string>
+    <string name="not_available">N/A</string>
+</resources>

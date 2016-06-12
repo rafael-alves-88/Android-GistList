@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity
                                 mGistAdapter.notifyDataSetChanged();
                             }
                         } else {
-                            Toast.makeText(MainActivity.this, "Sem Gist", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, R.string.error_empty_gist, Toast.LENGTH_SHORT).show();
                         }
 
                         rlLoading.setVisibility(View.GONE);
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onFailure(Throwable t) {
                     rlLoading.setVisibility(View.GONE);
-                    Toast.makeText(MainActivity.this, "Erro", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, R.string.error_gist_information, Toast.LENGTH_SHORT).show();
                 }
             });
         } catch (IOException | JSONException e) {

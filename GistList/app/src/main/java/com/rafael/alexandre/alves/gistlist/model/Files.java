@@ -14,12 +14,6 @@ public class Files {
     @SerializedName("language")
     @Expose
     public String language;
-    @SerializedName("raw_url")
-    @Expose
-    public String rawUrl;
-    @SerializedName("size")
-    @Expose
-    public Integer size;
     @SerializedName("content")
     @Expose
     public String content;
