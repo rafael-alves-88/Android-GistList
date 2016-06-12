@@ -234,6 +234,8 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_about) {
             mGistController.openAboutActivity(this);
+        } else if (id == R.id.nav_exit) {
+            this.finish();
         }
 
         if (drawer != null) {
