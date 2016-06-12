@@ -4,10 +4,14 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class Gist {
 
     public static final String GIST_ID = "GistID";
+    public static final String CONTENT = "Content";
+    public static final String HISTORY = "History";
+    public static final String HISTORY_LIST = "HistoryList";
 
     @SerializedName("url")
     @Expose
@@ -60,4 +64,7 @@ public class Gist {
     @SerializedName("truncated")
     @Expose
     public Boolean truncated;
+    @SerializedName("history")
+    @Expose
+    public List<History> history;
 }

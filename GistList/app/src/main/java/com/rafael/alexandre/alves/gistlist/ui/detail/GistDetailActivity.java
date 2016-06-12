@@ -13,9 +13,13 @@ import android.widget.Toast;
 
 import com.rafael.alexandre.alves.gistlist.R;
 import com.rafael.alexandre.alves.gistlist.controller.GistController;
+import com.rafael.alexandre.alves.gistlist.controller.GistDetailController;
 import com.rafael.alexandre.alves.gistlist.controller.OwnerController;
+import com.rafael.alexandre.alves.gistlist.model.Files;
 import com.rafael.alexandre.alves.gistlist.model.Gist;
 import com.rafael.alexandre.alves.gistlist.model.Owner;
+import com.rafael.alexandre.alves.gistlist.ui.detail.dialogFragments.history.HistoryFragment;
+import com.rafael.alexandre.alves.gistlist.utils.Utils;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -24,6 +28,7 @@ import java.io.IOException;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
@@ -35,17 +40,24 @@ public class GistDetailActivity extends AppCompatActivity {
     private Owner mOwner;
     private GistController mGistController = new GistController();
     private Gist mFullGist;
+    private GistDetailController mGistDetailController = new GistDetailController();
 
     @Bind(R.id.toolbar) Toolbar toolbar;
     @Bind(R.id.rlLoading) RelativeLayout rlLoading;
     @Bind(R.id.ivImage) ImageView ivImage;
     @Bind(R.id.tvLogin) TextView tvLogin;
     @Bind(R.id.tvName) TextView tvName;
+    @Bind(R.id.tvFileName) TextView tvFileName;
+    @Bind(R.id.tvFileType) TextView tvFileType;
+    @Bind(R.id.tvFileLanguage) TextView tvFileLanguage;
+    @Bind(R.id.tvCreatedAt) TextView tvCreatedAt;
+    @Bind(R.id.tvUpdatedAt) TextView tvUpdatedAt;
+    @Bind(R.id.tvDescription) TextView tvDescription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gits_detail);
+        setContentView(R.layout.gist_detail_activity);
         ButterKnife.bind(this);
 
         setSupportActionBar(toolbar);
@@ -95,8 +107,8 @@ public class GistDetailActivity extends AppCompatActivity {
 
     private void setOwner(Owner owner) {
         Picasso.with(this).load(owner.avatarUrl).into(ivImage);
-        tvLogin.setText(owner.login);
-        tvName.setText(owner.name);
+        tvLogin.setText(Utils.checkText(owner.login));
+        tvName.setText(Utils.checkText(owner.name));
     }
 
     private void getGistFullInfo(String gistID) throws IOException, JSONException {
@@ -125,7 +137,34 @@ public class GistDetailActivity extends AppCompatActivity {
     }
 
     private void setFullGist(Gist gist) {
+        if (gist.files != null) {
+            Files files = mGistController.getFilesFromMap(gist.files);
+            tvFileName.setText(Utils.checkText(files.filename));
+            tvFileType.setText(Utils.checkText(files.type));
+            tvFileLanguage.setText(Utils.checkText(files.language));
+        }
 
+        tvCreatedAt.setText(Utils.checkText(gist.createdAt));
+        tvUpdatedAt.setText(Utils.checkText(gist.updatedAt));
+        tvDescription.setText(Utils.checkText(gist.description));
+    }
+
+    @OnClick(R.id.fabContent)
+    public void fabContentClick() {
+        if (mFullGist.files != null && mFullGist.files.size() > 0) {
+            mGistDetailController.openContentDialog(mFullGist, getSupportFragmentManager());
+        } else {
+            Toast.makeText(this, "Vazio", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @OnClick(R.id.fabHistory)
+    public void fabHistoryClick() {
+        if (mFullGist.history != null && mFullGist.history.size() > 0) {
+            mGistDetailController.openHistoryDialog(mFullGist, getSupportFragmentManager());
+        } else {
+            Toast.makeText(this, "Vazio", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -144,6 +183,4 @@ public class GistDetailActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-
-
 }

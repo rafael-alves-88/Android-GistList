@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rlLoadingBottom"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:visibility="gone">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/loading_bottom_layout_height"
+        android:layout_alignParentBottom="true"
+        android:background="@color/colorBlackTransparent">
+
+        <ProgressBar
+            android:id="@+id/pbLoadingBottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:indeterminate="true" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

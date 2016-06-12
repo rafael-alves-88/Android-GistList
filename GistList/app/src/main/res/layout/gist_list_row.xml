@@ -8,7 +8,7 @@
     android:layout_margin="10dp"
     android:clickable="true"
     android:foreground="?attr/selectableItemBackground"
-    card_view:cardBackgroundColor="@color/colorPrimary"
+    card_view:cardBackgroundColor="@android:color/white"
     card_view:cardCornerRadius="2dp"
     card_view:cardElevation="6dp">
 
@@ -44,9 +44,7 @@
                 android:layout_width="match_parent"
                 android:layout_marginTop="10dp"
                 android:gravity="center"
-                android:linksClickable="false"
-                android:maxLines="2"
-                android:singleLine="false"
+                android:maxLines="1"
                 android:textSize="14sp"
                 tools:text="Rafael Alves" />
 

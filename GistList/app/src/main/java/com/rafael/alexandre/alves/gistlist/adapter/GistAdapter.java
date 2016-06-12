@@ -9,12 +9,12 @@ import android.widget.TextView;
 
 import com.makeramen.roundedimageview.RoundedImageView;
 import com.rafael.alexandre.alves.gistlist.R;
+import com.rafael.alexandre.alves.gistlist.controller.GistController;
 import com.rafael.alexandre.alves.gistlist.model.Files;
 import com.rafael.alexandre.alves.gistlist.model.Gist;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
-import java.util.Map;
 
 public class GistAdapter extends RecyclerView.Adapter<GistAdapter.GistAdapterViewHolder> {
 
@@ -54,8 +54,8 @@ public class GistAdapter extends RecyclerView.Adapter<GistAdapter.GistAdapterVie
 
         if (gist.files != null) {
             try {
-                Map.Entry<String, Files> mapEntry = gist.files.entrySet().iterator().next();
-                Files files = mapEntry.getValue();
+                GistController gistController = new GistController();
+                Files files = gistController.getFilesFromMap(gist.files);
 
                 String type;
                 if (files.type != null && files.type.length() > 0) {
