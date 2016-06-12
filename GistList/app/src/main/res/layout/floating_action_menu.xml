@@ -43,7 +43,7 @@
             android:id="@+id/fabContent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/fab_add"
+            android:src="@drawable/ic_action_content"
             fab:fab_label="@string/gist_detail_content"
             fab:fab_size="mini" />
 
@@ -51,7 +51,7 @@
             android:id="@+id/fabHistory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_menu_camera"
+            android:src="@drawable/ic_action_history"
             fab:fab_label="@string/gist_detail_history"
             fab:fab_size="mini" />
 
