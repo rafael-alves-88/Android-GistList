@@ -32,7 +32,7 @@
                 android:layout_marginTop="?android:attr/actionBarSize"
                 android:fitsSystemWindows="true"
                 android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_upload"
+                android:src="@drawable/github"
                 app:layout_collapseMode="parallax"
                 app:layout_collapseParallaxMultiplier="0.8" />
 

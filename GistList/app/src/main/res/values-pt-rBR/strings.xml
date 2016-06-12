@@ -28,5 +28,10 @@
     <string name="gist_detail_name">Nome: </string>
     <string name="gist_detail_user_title">Usuário</string>
     <string name="gist_detail_updated_at">Atualizado em: </string>
+    <string name="menu_about">Sobre</string>
+    <string name="menu_developer">Developer</string>
     <string name="not_available">N/A</string>
+    <string name="offline_mode">Sem conexão com a internet. O app irá trabalhar em modo offline.</string>
+    <string name="permission_revoked_internet">Sem permissão para acessar a internet\nVerifique as permissões do app nas configurações do Android</string>
+
 </resources>

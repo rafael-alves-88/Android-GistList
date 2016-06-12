@@ -1,8 +1,13 @@
 package com.rafael.alexandre.alves.gistlist.ui;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -20,7 +25,10 @@ import android.widget.Toast;
 import com.rafael.alexandre.alves.gistlist.R;
 import com.rafael.alexandre.alves.gistlist.adapter.GistAdapter;
 import com.rafael.alexandre.alves.gistlist.controller.GistController;
+import com.rafael.alexandre.alves.gistlist.model.AppMode;
 import com.rafael.alexandre.alves.gistlist.model.Gist;
+import com.rafael.alexandre.alves.gistlist.utils.Permissions;
+import com.rafael.alexandre.alves.gistlist.utils.Utils;
 
 import org.json.JSONException;
 
@@ -37,6 +45,7 @@ import retrofit.Retrofit;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public static AppMode mAppMode = AppMode.OFFLINE;
     private GistController mGistController = new GistController();
     private List<Gist> mGistList;
     private GistAdapter mGistAdapter;
@@ -76,93 +85,131 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void getGists() {
-        try {
-            if (mCurrentPage == 0) {
-                rlLoading.setVisibility(View.VISIBLE);
+        checkInternetPermission();
+    }
+
+    private void checkInternetPermission() {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED) {
+            if (Utils.checkInternetConnection(this)) {
+                mAppMode = AppMode.ONLINE;
+            } else {
+                mAppMode = AppMode.OFFLINE;
+                Toast.makeText(this, R.string.offline_mode, Toast.LENGTH_LONG).show();
             }
+            loadGists();
+        } else {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.INTERNET}, Permissions.PERMISSION_INTERNET);
+        }
+    }
+
+    private void loadGists() {
+        if (mCurrentPage == 0) {
+            rlLoading.setVisibility(View.VISIBLE);
+        }
+
+        if (mAppMode == AppMode.ONLINE) {
+            getOnlineGists();
+        } else {
+            getOfflineGists();
+        }
+    }
+
+    private void getOnlineGists() {
+        try {
             Call<List<Gist>> call = mGistController.getGistsCall(mCurrentPage);
 
             call.enqueue(new Callback<List<Gist>>() {
                 @Override
                 public void onResponse(Response<List<Gist>> response, Retrofit retrofit) {
-                    try {
-                        List<Gist> loadedGistList = response.body();
-
-                        if (loadedGistList != null && loadedGistList.size() > 0) {
-                            if (mCurrentPage == 0) {
-                                mGistList = loadedGistList;
-                                mGistAdapter = new GistAdapter(MainActivity.this, mGistList, new GistAdapter.OnGistClickListener() {
-                                    @Override
-                                    public void onGistClick(Gist item) {
-                                        mGistController.openGistDetail(MainActivity.this, item);
-                                    }
-                                });
-
-                                mLayoutManager = new LinearLayoutManager(MainActivity.this);
-                                rvGist.setLayoutManager(mLayoutManager);
-                                rvGist.setAdapter(mGistAdapter);
-
-                                srlGist.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                                    @Override
-                                    public void onRefresh() {
-                                        mCurrentPage = 0;
-                                        getGists();
-                                        srlGist.setRefreshing(false);
-                                    }
-                                });
-
-                                rvGist.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                                    @Override
-                                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                                        super.onScrolled(recyclerView, dx, dy);
-
-                                        int visibleItemCount = mLayoutManager.getChildCount();
-                                        int totalItemCount = mLayoutManager.getItemCount();
-                                        int pastVisibleItems = mLayoutManager.findFirstVisibleItemPosition();
-
-                                        if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
-                                            mCurrentPage = mCurrentPage + 1;
-                                            rlLoadingBottom.setVisibility(View.VISIBLE);
-                                            getGists();
-                                        }
-                                    }
-                                });
-                            } else {
-                                mGistList.addAll(loadedGistList);
-                                mGistAdapter.notifyDataSetChanged();
-                            }
-                        } else {
-                            Toast.makeText(MainActivity.this, R.string.error_empty_gist, Toast.LENGTH_SHORT).show();
-                        }
-
-                        rlLoading.setVisibility(View.GONE);
-                        if (mCurrentPage > 0) {
-                            dismissLoadingBottom();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    List<Gist> loadedGistList = response.body();
+                    mGistController.saveGistOffline(MainActivity.this, loadedGistList, mCurrentPage);
+                    setGistAdapter(loadedGistList);
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    rlLoading.setVisibility(View.GONE);
+                    dismissLoadingScreen();
                     Toast.makeText(MainActivity.this, R.string.error_gist_information, Toast.LENGTH_SHORT).show();
                 }
             });
         } catch (IOException | JSONException e) {
-            e.printStackTrace();
+            dismissLoadingScreen();
+            Toast.makeText(MainActivity.this, R.string.error_gist_information, Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void dismissLoadingBottom() {
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                rlLoadingBottom.setVisibility(View.GONE);
+    private void getOfflineGists() {
+        try {
+            List<Gist> loadedGistList = mGistController.getGistOffline(this, mCurrentPage);
+            setGistAdapter(loadedGistList);
+        } catch (IOException | ClassNotFoundException e) {
+            dismissLoadingScreen();
+            Toast.makeText(MainActivity.this, R.string.error_gist_information, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void setGistAdapter(List<Gist> loadedGistList) {
+        if (loadedGistList != null && loadedGistList.size() > 0) {
+            if (mCurrentPage == 0) {
+                mGistList = loadedGistList;
+                mGistAdapter = new GistAdapter(MainActivity.this, mGistList, new GistAdapter.OnGistClickListener() {
+                    @Override
+                    public void onGistClick(Gist item) {
+                        mGistController.openGistDetail(MainActivity.this, item);
+                    }
+                });
+
+                mLayoutManager = new LinearLayoutManager(MainActivity.this);
+                rvGist.setLayoutManager(mLayoutManager);
+                rvGist.setAdapter(mGistAdapter);
+
+                srlGist.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        mCurrentPage = 0;
+                        getGists();
+                        srlGist.setRefreshing(false);
+                    }
+                });
+
+                rvGist.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                        super.onScrolled(recyclerView, dx, dy);
+
+                        int visibleItemCount = mLayoutManager.getChildCount();
+                        int totalItemCount = mLayoutManager.getItemCount();
+                        int pastVisibleItems = mLayoutManager.findFirstVisibleItemPosition();
+
+                        if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                            mCurrentPage = mCurrentPage + 1;
+                            rlLoadingBottom.setVisibility(View.VISIBLE);
+                            getGists();
+                        }
+                    }
+                });
+            } else {
+                mGistList.addAll(loadedGistList);
+                mGistAdapter.notifyDataSetChanged();
             }
-        }, 1500);
+        } else {
+            Toast.makeText(MainActivity.this, R.string.error_empty_gist, Toast.LENGTH_SHORT).show();
+        }
+
+        dismissLoadingScreen();
+    }
+
+    private void dismissLoadingScreen() {
+        rlLoading.setVisibility(View.GONE);
+        if (mCurrentPage > 0) {
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    rlLoadingBottom.setVisibility(View.GONE);
+                }
+            }, 1500);
+        }
     }
 
     @Override
@@ -185,18 +232,8 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        if (id == R.id.nav_about) {
+            mGistController.openAboutActivity(this);
         }
 
         if (drawer != null) {
@@ -204,5 +241,20 @@ public class MainActivity extends AppCompatActivity
         }
 
         return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case Permissions.PERMISSION_INTERNET:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    loadGists();
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.permission_revoked_internet, Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
     }
 }

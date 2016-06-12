@@ -15,9 +15,11 @@ import com.rafael.alexandre.alves.gistlist.R;
 import com.rafael.alexandre.alves.gistlist.controller.GistController;
 import com.rafael.alexandre.alves.gistlist.controller.GistDetailController;
 import com.rafael.alexandre.alves.gistlist.controller.OwnerController;
+import com.rafael.alexandre.alves.gistlist.model.AppMode;
 import com.rafael.alexandre.alves.gistlist.model.Files;
 import com.rafael.alexandre.alves.gistlist.model.Gist;
 import com.rafael.alexandre.alves.gistlist.model.Owner;
+import com.rafael.alexandre.alves.gistlist.ui.MainActivity;
 import com.rafael.alexandre.alves.gistlist.utils.Utils;
 import com.squareup.picasso.Picasso;
 
@@ -81,58 +83,110 @@ public class GistDetailActivity extends AppCompatActivity {
 
     private void getOwnerInfo(String login) throws IOException, JSONException {
         rlLoading.setVisibility(View.VISIBLE);
-        Call<Owner> call = mOwnerController.getOwnerCall(login);
 
-        call.enqueue(new Callback<Owner>() {
-            @Override
-            public void onResponse(Response<Owner> response, Retrofit retrofit) {
-                try {
-                    mOwner = response.body();
-                    setOwner(mOwner);
-                } catch (Exception e) {
-                    e.printStackTrace();
+        if (MainActivity.mAppMode == AppMode.ONLINE) {
+            getOnlineOwnerInfo(login);
+        } else {
+            getOfflineOwnerInfo(login);
+        }
+    }
+
+    private void getOnlineOwnerInfo(final String login) {
+        try {
+            Call<Owner> call = mOwnerController.getOwnerCall(login);
+
+            call.enqueue(new Callback<Owner>() {
+                @Override
+                public void onResponse(Response<Owner> response, Retrofit retrofit) {
+                    try {
+                        mOwner = response.body();
+                        mOwnerController.saveOwnerOffline(GistDetailActivity.this, mOwner, login);
+                        setOwner(mOwner);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    rlLoading.setVisibility(View.GONE);
                 }
 
-                rlLoading.setVisibility(View.GONE);
-            }
+                @Override
+                public void onFailure(Throwable t) {
+                    rlLoading.setVisibility(View.GONE);
+                    Toast.makeText(GistDetailActivity.this, R.string.error_owner_data, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (IOException | JSONException e) {
+            rlLoading.setVisibility(View.GONE);
+            Toast.makeText(GistDetailActivity.this, R.string.error_owner_data, Toast.LENGTH_SHORT).show();
+        }
+    }
 
-            @Override
-            public void onFailure(Throwable t) {
-                rlLoading.setVisibility(View.GONE);
-                Toast.makeText(GistDetailActivity.this, R.string.error_owner_data, Toast.LENGTH_SHORT).show();
-            }
-        });
+    private void getOfflineOwnerInfo(String login) {
+        try {
+            mOwner = mOwnerController.getOwnerOffline(this, login);
+            setOwner(mOwner);
+        } catch (IOException | ClassNotFoundException e) {
+            rlLoading.setVisibility(View.GONE);
+            Toast.makeText(GistDetailActivity.this, R.string.error_owner_data, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setOwner(Owner owner) {
-        Picasso.with(this).load(owner.avatarUrl).into(ivImage);
-        tvLogin.setText(Utils.checkText(owner.login));
-        tvName.setText(Utils.checkText(owner.name));
+        if (owner != null) {
+            Picasso.with(this).load(owner.avatarUrl).into(ivImage);
+            tvLogin.setText(Utils.checkText(owner.login));
+            tvName.setText(Utils.checkText(owner.name));
+        }
     }
 
     private void getGistFullInfo(String gistID) throws IOException, JSONException {
         rlLoading.setVisibility(View.VISIBLE);
-        Call<Gist> call = mGistController.getGistByIDCall(gistID);
 
-        call.enqueue(new Callback<Gist>() {
-            @Override
-            public void onResponse(Response<Gist> response, Retrofit retrofit) {
-                try {
-                    mFullGist = response.body();
-                    setFullGist(mFullGist);
-                } catch (Exception e) {
-                    e.printStackTrace();
+        if (MainActivity.mAppMode == AppMode.ONLINE) {
+            getOnlineFullGist(gistID);
+        } else {
+            getOfflineFullGist(gistID);
+        }
+    }
+
+    private void getOnlineFullGist(final String gistId) {
+        try {
+            Call<Gist> call = mGistController.getGistByIDCall(gistId);
+
+            call.enqueue(new Callback<Gist>() {
+                @Override
+                public void onResponse(Response<Gist> response, Retrofit retrofit) {
+                    try {
+                        mFullGist = response.body();
+                        mGistDetailController.saveFullGistOffline(GistDetailActivity.this, mFullGist, gistId);
+                        setFullGist(mFullGist);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    rlLoading.setVisibility(View.GONE);
                 }
 
-                rlLoading.setVisibility(View.GONE);
-            }
+                @Override
+                public void onFailure(Throwable t) {
+                    rlLoading.setVisibility(View.GONE);
+                    Toast.makeText(GistDetailActivity.this, R.string.error_gist_data, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (IOException | JSONException e) {
+            rlLoading.setVisibility(View.GONE);
+            Toast.makeText(GistDetailActivity.this, R.string.error_gist_data, Toast.LENGTH_SHORT).show();
+        }
+    }
 
-            @Override
-            public void onFailure(Throwable t) {
-                rlLoading.setVisibility(View.GONE);
-                Toast.makeText(GistDetailActivity.this, R.string.error_gist_data, Toast.LENGTH_SHORT).show();
-            }
-        });
+    private void getOfflineFullGist(String gistId) {
+        try {
+            mFullGist = mGistDetailController.getFullGistOffline(this, gistId);
+            setFullGist(mFullGist);
+        } catch (IOException | ClassNotFoundException e) {
+            rlLoading.setVisibility(View.GONE);
+            Toast.makeText(GistDetailActivity.this, R.string.error_gist_data, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setFullGist(Gist gist) {
@@ -146,6 +200,8 @@ public class GistDetailActivity extends AppCompatActivity {
         tvCreatedAt.setText(Utils.checkText(gist.createdAt));
         tvUpdatedAt.setText(Utils.checkText(gist.updatedAt));
         tvDescription.setText(Utils.checkText(gist.description));
+
+        rlLoading.setVisibility(View.GONE);
     }
 
     @OnClick(R.id.fabContent)

@@ -3,7 +3,9 @@ package com.rafael.alexandre.alves.gistlist.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Files {
+import java.io.Serializable;
+
+public class Files implements Serializable {
 
     @SerializedName("filename")
     @Expose
