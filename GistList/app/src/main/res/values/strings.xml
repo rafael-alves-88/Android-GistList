@@ -32,6 +32,8 @@
     <string name="not_available">N/A</string>
     <string name="offline_mode">No internet Connection. The app will work in offline mode.</string>
     <string name="permission_revoked_internet">No permission to connect to the internet\nCheck your app permissions in Android settings</string>
+    <string name="permission_revoked_read_external_storage">No permission to read external storage\nCheck your app permissions in Android settings</string>
+    <string name="permission_revoked_write_external_storage">No permission to write external storage\nCheck your app permissions in Android settings</string>
     <string name="title_activity_about">AboutActivity</string>
 
 </resources>

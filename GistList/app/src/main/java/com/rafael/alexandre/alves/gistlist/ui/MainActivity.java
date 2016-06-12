@@ -84,6 +84,26 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void requestWriteExternalStoragePermission(List<Gist> loadedGistList) {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            mGistController.saveGistOffline(MainActivity.this, loadedGistList, mCurrentPage);
+        } else {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, Permissions.PERMISSION_WRITE_EXTERNAL_STORAGE);
+        }
+    }
+
+    private List<Gist> requestReadExternalStoragePermission() throws IOException, ClassNotFoundException {
+        List<Gist> loadedGistList = null;
+
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            loadedGistList = mGistController.getGistOffline(this, mCurrentPage);
+        } else {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, Permissions.PERMISSION_READ_EXTERNAL_STORAGE);
+        }
+
+        return loadedGistList;
+    }
+
     private void getGists() {
         checkInternetPermission();
     }
@@ -122,7 +142,7 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onResponse(Response<List<Gist>> response, Retrofit retrofit) {
                     List<Gist> loadedGistList = response.body();
-                    mGistController.saveGistOffline(MainActivity.this, loadedGistList, mCurrentPage);
+                    requestWriteExternalStoragePermission(loadedGistList);
                     setGistAdapter(loadedGistList);
                 }
 
@@ -140,7 +160,7 @@ public class MainActivity extends AppCompatActivity
 
     private void getOfflineGists() {
         try {
-            List<Gist> loadedGistList = mGistController.getGistOffline(this, mCurrentPage);
+            List<Gist> loadedGistList = requestReadExternalStoragePermission();
             setGistAdapter(loadedGistList);
         } catch (IOException | ClassNotFoundException e) {
             dismissLoadingScreen();
@@ -255,6 +275,20 @@ public class MainActivity extends AppCompatActivity
                     loadGists();
                 } else {
                     Toast.makeText(MainActivity.this, R.string.permission_revoked_internet, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case Permissions.PERMISSION_WRITE_EXTERNAL_STORAGE:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.permission_revoked_write_external_storage, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case Permissions.PERMISSION_READ_EXTERNAL_STORAGE:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.permission_revoked_read_external_storage, Toast.LENGTH_SHORT).show();
                 }
                 break;
         }

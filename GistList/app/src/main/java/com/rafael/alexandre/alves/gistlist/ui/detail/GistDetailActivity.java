@@ -127,7 +127,6 @@ public class GistDetailActivity extends AppCompatActivity {
             setOwner(mOwner);
         } catch (IOException | ClassNotFoundException e) {
             rlLoading.setVisibility(View.GONE);
-            Toast.makeText(GistDetailActivity.this, R.string.error_owner_data, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -185,7 +184,6 @@ public class GistDetailActivity extends AppCompatActivity {
             setFullGist(mFullGist);
         } catch (IOException | ClassNotFoundException e) {
             rlLoading.setVisibility(View.GONE);
-            Toast.makeText(GistDetailActivity.this, R.string.error_gist_data, Toast.LENGTH_SHORT).show();
         }
     }
 
