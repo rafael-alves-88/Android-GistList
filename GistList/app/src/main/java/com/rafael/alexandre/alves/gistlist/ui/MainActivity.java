@@ -1,10 +1,11 @@
 package com.rafael.alexandre.alves.gistlist.ui;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,8 +21,6 @@ import com.rafael.alexandre.alves.gistlist.R;
 import com.rafael.alexandre.alves.gistlist.adapter.GistAdapter;
 import com.rafael.alexandre.alves.gistlist.controller.GistController;
 import com.rafael.alexandre.alves.gistlist.model.Gist;
-import com.rafael.alexandre.alves.gistlist.model.Owner;
-import com.rafael.alexandre.alves.gistlist.ui.detail.GistDetailActivity;
 
 import org.json.JSONException;
 
@@ -40,22 +39,30 @@ public class MainActivity extends AppCompatActivity
 
     private GistController mGistController = new GistController();
     private List<Gist> mGistList;
-    private int mCurrentPage;
     private GistAdapter mGistAdapter;
+    private LinearLayoutManager mLayoutManager;
+    private int mCurrentPage = 0;
 
     @Bind(R.id.toolbar) Toolbar toolbar;
     @Bind(R.id.drawer_layout) DrawerLayout drawer;
     @Bind(R.id.nav_view) NavigationView navigationView;
     @Bind(R.id.rvGist) RecyclerView rvGist;
+    @Bind(R.id.srlGist) SwipeRefreshLayout srlGist;
     @Bind(R.id.rlLoading) RelativeLayout rlLoading;
+    @Bind(R.id.rlLoadingBottom) RelativeLayout rlLoadingBottom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main_activity);
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
 
+        setDrawer();
+        getGists();
+    }
+
+    private void setDrawer() {
         if (drawer != null) {
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                     this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -66,62 +73,96 @@ public class MainActivity extends AppCompatActivity
         if (navigationView != null) {
             navigationView.setNavigationItemSelectedListener(this);
         }
+    }
 
+    private void getGists() {
         try {
-            mCurrentPage = 0;
-            getGists();
+            if (mCurrentPage == 0) {
+                rlLoading.setVisibility(View.VISIBLE);
+            }
+            Call<List<Gist>> call = mGistController.getGistsCall(mCurrentPage);
+
+            call.enqueue(new Callback<List<Gist>>() {
+                @Override
+                public void onResponse(Response<List<Gist>> response, Retrofit retrofit) {
+                    try {
+                        List<Gist> loadedGistList = response.body();
+
+                        if (loadedGistList != null && loadedGistList.size() > 0) {
+                            if (mCurrentPage == 0) {
+                                mGistList = loadedGistList;
+                                mGistAdapter = new GistAdapter(MainActivity.this, mGistList, new GistAdapter.OnGistClickListener() {
+                                    @Override
+                                    public void onGistClick(Gist item) {
+                                        mGistController.openGistDetail(MainActivity.this, item);
+                                    }
+                                });
+
+                                mLayoutManager = new LinearLayoutManager(MainActivity.this);
+                                rvGist.setLayoutManager(mLayoutManager);
+                                rvGist.setAdapter(mGistAdapter);
+
+                                srlGist.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                                    @Override
+                                    public void onRefresh() {
+                                        mCurrentPage = 0;
+                                        getGists();
+                                        srlGist.setRefreshing(false);
+                                    }
+                                });
+
+                                rvGist.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                                    @Override
+                                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                                        super.onScrolled(recyclerView, dx, dy);
+
+                                        int visibleItemCount = mLayoutManager.getChildCount();
+                                        int totalItemCount = mLayoutManager.getItemCount();
+                                        int pastVisibleItems = mLayoutManager.findFirstVisibleItemPosition();
+
+                                        if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                                            mCurrentPage = mCurrentPage + 1;
+                                            rlLoadingBottom.setVisibility(View.VISIBLE);
+                                            getGists();
+                                        }
+                                    }
+                                });
+                            } else {
+                                mGistList.addAll(loadedGistList);
+                                mGistAdapter.notifyDataSetChanged();
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this, "Sem Gist", Toast.LENGTH_SHORT).show();
+                        }
+
+                        rlLoading.setVisibility(View.GONE);
+                        if (mCurrentPage > 0) {
+                            dismissLoadingBottom();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    rlLoading.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity.this, "Erro", Toast.LENGTH_SHORT).show();
+                }
+            });
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void getGists() throws IOException, JSONException {
-        rlLoading.setVisibility(View.VISIBLE);
-        Call<List<Gist>> call = mGistController.getGistsCall(mCurrentPage);
-
-        call.enqueue(new Callback<List<Gist>>() {
+    private void dismissLoadingBottom() {
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
             @Override
-            public void onResponse(Response<List<Gist>> response, Retrofit retrofit) {
-                try {
-                    mGistList = response.body();
-
-                    if (mCurrentPage == 0) {
-                        mGistAdapter = new GistAdapter(MainActivity.this, mGistList, new GistAdapter.OnGistClickListener() {
-                            @Override
-                            public void onGistClick(Gist item) {
-                                Intent intent = new Intent(MainActivity.this, GistDetailActivity.class);
-                                String ownerLogin;
-                                if (item.owner != null) {
-                                    ownerLogin = item.owner.login;
-                                } else {
-                                    ownerLogin = "N/A";
-                                }
-                                intent.putExtra(Owner.OWNER_LOGIN, ownerLogin);
-
-                                intent.putExtra(Gist.GIST_ID, mGistController.getGistIDByURL(item.url));
-                                startActivity(intent);
-                            }
-                        });
-
-                        LinearLayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this);
-                        rvGist.setLayoutManager(mLayoutManager);
-                        rvGist.setAdapter(mGistAdapter);
-                    } else {
-                        mGistAdapter.notifyDataSetChanged();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                rlLoading.setVisibility(View.GONE);
+            public void run() {
+                rlLoadingBottom.setVisibility(View.GONE);
             }
-
-            @Override
-            public void onFailure(Throwable t) {
-                rlLoading.setVisibility(View.GONE);
-                Toast.makeText(MainActivity.this, "Erro", Toast.LENGTH_SHORT).show();
-            }
-        });
+        }, 1500);
     }
 
     @Override
@@ -137,17 +178,6 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
